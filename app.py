@@ -1,17 +1,27 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
+from scraper import scrape_emails  # Import the function from scraper.py
 
-# Load the scraped data
-csv_file = "leads.csv"
-df = pd.read_csv(csv_file)
+# Title
+st.title("🔍 Email Scraper")
 
-st.title("Lead Generation Scraper")
-st.write("Extracted business leads from the web.")
+# User input for the website URL
+url = st.text_input("Enter Website URL")
 
-# Display data
-st.dataframe(df)
+# Button to start scraping
+if st.button("Scrape Emails"):
+    if url.startswith("http"):  # Ensure valid URL
+        emails = scrape_emails(url)  # Call the scraper function
 
-# Download button
-st.download_button("Download CSV", df.to_csv(index=False), "leads.csv", "text/csv")
+        if isinstance(emails, list) and emails:  # Check if emails are found
+            st.success(f"✅ Found {len(emails)} emails!")
+            df = pd.DataFrame({"Emails": emails})  # Convert to DataFrame
+            st.dataframe(df)  # Display emails in a table
 
-st.success("Leads extracted and ready to use!")
+            # Provide CSV download option
+            csv = df.to_csv(index=False)
+            st.download_button(label="📥 Download Emails", data=csv, file_name="emails.csv", mime="text/csv")
+        else:
+            st.warning("⚠️ No emails found or an error occurred.")
+    else:
+        st.warning("⚠️ Please enter a valid website URL (starting with http or https).")
